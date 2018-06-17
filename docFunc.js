@@ -34,7 +34,6 @@ function generateInstructorDocument(OutputFolder){
   // Table Header
   var table = [['Tijdvak']];
   for (i in DAYS){table[0].push(DAYS[i])}
-  Logger.log(table)
   
   // Fill table with first column and empty rest
   for (var i = 0; i < SESSIONS.length; i++){

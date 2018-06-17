@@ -31,12 +31,13 @@
 */
 
 // global variables
-// TODO: parse globals COURSES and SESSIONS from spreadsheet
 var COURSES = getCOURSES()
 var SESSIONS = getSESSIONS()
 var INFO = getINFO()
 var CLASSES = ['M1A', 'M1B', 'M2A', 'M2B', 'M3A', 'M3B', 'M4A', 'M4B']
 var DAYS = ['Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag']
+var DAYS = ['Maandag', 'Dinsdag'];
+var SETTINGS = {schedules_folder_preliminary: "VoorlopigeRoosters", schedules_folder_final: "DefinitieveRoosters"}
 
 function getINFO(){
   var ss = SpreadsheetApp.getActive();
@@ -86,9 +87,8 @@ function getSESSIONS(){
   return sessions
 }
 
-
 /**
- * A special function that inserts a custom menu when the spreadsheet opens.
+ * A special function that inserts the custom menu when the spreadsheet opens.
  */
 function onOpen() {
   
@@ -149,6 +149,11 @@ function setUpTrivium_() {
   return true
 }
 
+/**
+ * Resets the spreadsheet to pristine state. 
+ * The user is warned with a popup before command
+ * is executed
+ */
 function resetApp_(){
   var ss = SpreadsheetApp.getActive();
   // Warn user that this action will delete all current information in the sheet
@@ -184,12 +189,16 @@ function resetApp_(){
   }
 }
 
+/**
+ * Creates an overview schedule for instructors. If students
+ * have already filled out the form, displays how many students
+ * have registered for a course
+ */
 function genInstructorDocMenu(){
   var ss = SpreadsheetApp.getActive();
   Logger.log('Sending command to make instr. doc')
   var docId = generateInstructorDocument(getParentFolderOfFile(ss));
   moveFileToAnotherFolder(docId, getParentFolderOfFile(ss));
-  
   Browser.msgBox("Overzichtsrooster is aangemaakt")
 }
 
@@ -202,18 +211,13 @@ function sendSchedulesFromSheet_(){
 }
 
 function showHelp_(){
-  //Browser.msgBox('Hier komt een help tekst met informatie over de app')
   // Display a modal dialog box with custom HtmlService content.
   var html = HtmlService.createHtmlOutputFromFile('sidebar')
       .setTitle('Tivium Rooster App Help')
       //.setWidth(300); // lijkt niets te doen..
   SpreadsheetApp.getUi() // Or DocumentApp or FormApp.
       .showSidebar(html);
-
-
 }
-
-
 
 // =============================================================================================
 // 
@@ -229,17 +233,12 @@ function deleteTriggers() {
  
 }
 
-
-
-
-
 function findMatchingIdInArray(value, array){
   for (i in array){
     if (array[i] == value){return parseInt(i)}
   }
   return null
 }
-
 
 
 // =============================================================================================
