@@ -27,10 +27,16 @@ function createSheet(name) {
     cells.setFontWeight("bold").setBorder(true, null, true, null, false, false, "Black", SpreadsheetApp.BorderStyle.SOLID_THICK)
 }
 
-function retrieveSchedule(){
-  // Parses the 'planning' sheet and returns the 'schedule' array. Each
-  // item in the array is an object with info on the schedule item. 
-  
+/* Schedule per timeslot
+ * Parses the 'planning' sheet and returns the 'schedule' array. Each
+ * item in the array is an object with info on the schedule item. 
+ * Number of students per timeslot is retrieved from the linked form
+ *
+ *
+ * 
+ * 
+ */
+function retrieveSchedule(){ 
   var schedule = [];
   
   // Open sheet and load info
@@ -84,6 +90,61 @@ function retrieveSchedule(){
   return schedule  
 }
 
+/* Schedule per student
+ * Parses the linked form to retrieve schedule per user
+ * Returns array. Each entry is object with attributes
+ * 'name' - string, 
+ * 'class' - string,
+ * 'email' - string,
+ * 'response' array, each entry:
+ *    day
+ *    session
+ *    choice 
+ */
+function retrieveStudentSchedule(){ 
+  var schedule = [];
+  
+  // Open spreadsheet
+  var ss = SpreadsheetApp.getActive();
+  
+  // Check whether there is a sheet linked to form
+  var sheets = ss.getSheets()
+  var FormSheet = null
+  for (i in sheets){ 
+      var linkedform = sheets[i].getFormUrl()
+      if (linkedform != null){var FormSheet = sheets[i]}
+  }
+  Logger.log('Found linked form: ' + FormSheet)
+
+  // Read header (choises)
+  
+  // Read all students (assuming no more than 998 students)
+  var students = FormSheet.getDataRange().getValues();
+  var header = students[0]
+  for (var row = 1; row < students.length; row ++){
+    schedule.push({name: students[row][1],
+                   email: students[row][2],
+                   class: students[row][3],
+                   response: []
+                   });
+      for (var i = 4; i < students[row].length; i ++){
+        options = {day:header[i].split(',')[0].trim(),
+                   session:header[i].split(',')[1].trim(),
+                   choice:students[row][i] 
+                  };
+        schedule.slice(-1)[0].response.push(options);
+      }
+    }
+  
+  //Logger.log(students)
+  
+  return schedule  
+}
+
+
+/* Counts only if condition is met
+ * Similar to excel countif function
+ */
 function countIf(condition, list){
   var count = 0
   for (i in list){
@@ -92,4 +153,16 @@ function countIf(condition, list){
     }
   }
   return count
+}
+
+/* Will remove all falsy values: undefined, null, 0, false, NaN and "" (empty string)
+*/
+function cleanArray(actual) {
+  var newArray = new Array();
+  for (var i = 0; i < actual.length; i++) {
+    if (actual[i]) {
+      newArray.push(actual[i]);
+    }
+  }
+  return newArray;
 }

@@ -131,9 +131,9 @@ function setUpTrivium_() {
   resetApp_()
   
   // Create a sheet for each course
-  for (var i = 0; i<COURSES.length; i++) {
-    createSheet(COURSES[i].name)
-  }
+  //for (var i = 0; i<COURSES.length; i++) {
+  //  createSheet(COURSES[i].name)
+  //}
   
   // Create form for students
   formid = setUpForm_(ss, values);
@@ -203,12 +203,29 @@ function genInstructorDocMenu(){
 }
 
 function generateSchedulesFromSheet_(){
-  Browser.msgBox('Deze functie is nog niet ingebouwd')
+  GenerateAndSendFromSheet_(false)
 }
 
 function sendSchedulesFromSheet_(){
-  Browser.msgBox('Deze functie is nog niet ingebouwd')
+  GenerateAndSendFromSheet_(true) 
 }
+
+function GenerateAndSendFromSheet_(SendEmail){
+  var ss = SpreadsheetApp.getActive();
+  schedule = retrieveStudentSchedule()
+  Logger.log('Sending command to make def. doc')
+
+  // Generate all files
+  for (var i=0;i<schedule.length;i++){
+    var docId = generateFinalScheduleForUser(schedule[i]);
+    moveFileToAnotherFolder(docId, getSubfolder(SETTINGS.schedules_folder_final, getParentFolderOfFile(ss)));
+    if (SendEmail){
+      SendEmailToUser(schedule[i], 'email_final.html', docId)
+    }
+  }
+  
+}
+
 
 function showHelp_(){
   // Display a modal dialog box with custom HtmlService content.

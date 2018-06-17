@@ -79,13 +79,13 @@ function onFormSubmit(e) {
               class:e.namedValues["Klas"][0], response: []};
   Logger.log('Started logging for ' + user.name)
 
-  // Add student to course overview
+  // Fills response for user
   for (var i = 0; i < schedule.length; i++){
     Logger.log(schedule[i].name)
     chosenCourse = e.namedValues[schedule[i].name]
     Logger.log(chosenCourse)
     if (chosenCourse[0].length > 0){
-    appendToSheet(chosenCourse[0], [user.name, user.class, schedule[i].name])
+    //appendToSheet(chosenCourse[0], [user.name, user.class, schedule[i].name])
     user.response.push({day:schedule[i].name.split(',')[0].trim(), 
                         session: schedule[i].name.split(',')[1].trim(), 
                         choice: e.namedValues[schedule[i].name]})

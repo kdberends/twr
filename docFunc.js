@@ -182,12 +182,84 @@ function generatePreliminaryDocument(user) {
   doc.saveAndClose();
   
   return docId
-  // Email a link to the Doc as well as a PDF copy.
-  //MailApp.sendEmail({
-  //  to: user.email,
-  //  subject: doc.getName(),
-  //  body: 'Thanks for registering! Here\'s your itinerary: ' + doc.getUrl(),
-  //  attachments: doc.getAs(MimeType.PDF),
-  //});
 }
 
+
+function generateFinalScheduleForUser(user) {
+  /**
+  This function generates a preliminary document
+  based on choices of the student.
+  
+  The document is generated in the OutputFolder. 
+  
+  Argument:
+  OutputFolder: google driver folder ID
+  
+  Returns:
+  Google document ID
+
+  */
+  // Create and share a personalized Google Doc that shows the student's chosen schedule
+  
+  var docid = DriveApp.getFilesByName("RoosterTemplate").next().makeCopy(Utilities.formatString('Definitief Rooster voor %s, %s', user.name, user.class)).getId();
+  var doc = DocumentApp.openById(docid)
+  //var doc = DocumentApp.create(Utilitie.formatString('Voorlopig Rooster voor %s, %s', user.name, user.class));
+  var body = doc.getBody();
+  // to landscape (in points https://www.google.nl/webhp#newwindow=1&q=8,27+inch+in+point)
+  doc.getBody().setPageHeight(595.276).setPageWidth(841.89);
+  
+  // Define a custom paragraph style.
+  var style = {};
+  style[DocumentApp.Attribute.MARGIN_BOTTOM] = 10
+  style[DocumentApp.Attribute.MARGIN_TOP] = 10
+  style[DocumentApp.Attribute.MARGIN_LEFT] = 10
+  style[DocumentApp.Attribute.MARGIN_RIGHT] = 10
+  style[DocumentApp.Attribute.FONT_SIZE] = 8;
+  body.setAttributes(style)
+  
+  // Build table out of student response
+  // =======================================
+  
+  // Header
+  var table = [['Tijdvak']];
+  for (i in DAYS){table[0].push(DAYS[i])}
+  
+  // Fill table with first column and empty rest
+  for (var i = 0; i < SESSIONS.length; i++){
+    var row = new Array(DAYS.length + 1).join('; ').split(';')
+    row[0] = SESSIONS[i].name
+    table.push(row)
+  }
+  
+  // sessionsnames for look up
+  var sessionnames = []
+    for (i in SESSIONS){
+      sessionnames.push(SESSIONS[i].name[0])
+    }
+  
+  // Loop through student response and add to schedule
+  for (i in user.response){
+    columnId = findMatchingIdInArray(user.response[i].day, DAYS)
+    rowId = findMatchingIdInArray(user.response[i].session, sessionnames) 
+    Logger.log("row: " + rowId, " Column; " + columnId)
+    if (columnId!=null && rowId!= null){
+      table[rowId + 1][columnId + 1] = user.response[i].choice
+    }
+  }
+  
+  // Fill document
+  body.insertParagraph(0, "Voorlopig programma")
+      .setHeading(DocumentApp.ParagraphHeading.HEADING1);
+  body.appendParagraph(Utilities.formatString("%s | %s, %s", user.name, user.class, user.email));
+  body.appendParagraph("Dit is je definitieve persoonlijk programma.");
+  table = body.appendTable(table);
+  
+  // Background color first row
+  for (var i = 0; i < table.getRow(0).getNumCells(); i++){table.getRow(0).getCell(i).setBackgroundColor('#107896')}
+  
+  table.getRow(0).editAsText().setBold(true).setForegroundColor('#F2F3F4');
+  var docId = doc.getId();
+  doc.saveAndClose();
+  
+  return docId
+}
