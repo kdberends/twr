@@ -9,7 +9,6 @@ function appendToSheet(sheetName, data) {
   ActiveSheet.getRange(values.length + 1, 1, 1, data.length).setValues(newdata);
 }
 
-
 function createSheet(name) {
   var activeSpreadsheet = SpreadsheetApp.getActive()
   var yourNewSheet = activeSpreadsheet.getSheetByName(name);
@@ -135,12 +134,31 @@ function retrieveStudentSchedule(){
         schedule.slice(-1)[0].response.push(options);
       }
     }
-  
-  //Logger.log(students)
-  
   return schedule  
 }
 
+/*
+ * To print attendance forms
+*/
+function retrieveStudentsPerCourseSession(course, day, time){
+  var schedule = retrieveStudentSchedule()
+  var students = []
+  for (var i=0;i<schedule.length;i++){
+    // Loop through students. If response matches with course, day and time
+    // ...add to array
+    for (var j=0;j<schedule[i].response.length;j++){
+      //Logger.log(schedule[i].response[j].day)
+      if (schedule[i].response[j].day==day){
+        if (schedule[i].response[j].session==time){
+          if (schedule[i].response[j].choice==course){
+            students.push({name: schedule[i].name, class: schedule[i].class})
+          }
+        }
+      } 
+    }
+  }
+  return students
+}
 
 /* Counts only if condition is met
  * Similar to excel countif function

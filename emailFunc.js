@@ -1,4 +1,4 @@
-function SendEmailToUser(user, templatefile, attachmentID){
+function SendEmailToUser(user, templatefile, attachmentID, subject){
   Logger.log('sending email to ' + user.email)
     var attachment = DriveApp.getFileById(attachmentID);
     
@@ -7,7 +7,7 @@ function SendEmailToUser(user, templatefile, attachmentID){
     htmlBody = template.evaluate().getContent();
     MailApp.sendEmail({
       to: user.email,
-      subject: "Jouw voorlopige Triviumweekrooster",
+      subject: subject,
       htmlBody: htmlBody,
       attachments:  [attachment.getAs(MimeType.PDF)]
       })

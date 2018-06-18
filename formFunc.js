@@ -44,7 +44,9 @@ function setUpForm_(ss, values) {
         if (courseOptions.length > 1){
         form.addListItem()
         .setTitle(schedule[j].name)
-        .setChoiceValues(courseOptions);
+        .setChoiceValues(courseOptions)
+        .setRequired(true);
+
         }
       }
     } 

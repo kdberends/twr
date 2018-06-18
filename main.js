@@ -36,8 +36,7 @@ var SESSIONS = getSESSIONS()
 var INFO = getINFO()
 var CLASSES = ['M1A', 'M1B', 'M2A', 'M2B', 'M3A', 'M3B', 'M4A', 'M4B']
 var DAYS = ['Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag']
-var DAYS = ['Maandag', 'Dinsdag'];
-var SETTINGS = {schedules_folder_preliminary: "VoorlopigeRoosters", schedules_folder_final: "DefinitieveRoosters"}
+var SETTINGS = {schedules_folder_preliminary: "VoorlopigeRoosters", schedules_folder_final: "DefinitieveRoosters", attendance_folder: "Presentielijsten"}
 
 function getINFO(){
   var ss = SpreadsheetApp.getActive();
@@ -103,6 +102,7 @@ function onOpen() {
   // Menu item to create final schedules after students have filled in forms
   menuEntries.push({name: 'Maak definitieve studentroosters', functionName: 'generateSchedulesFromSheet_'});
   menuEntries.push({name: 'Stuur definitieve studentroosters', functionName: 'sendSchedulesFromSheet_'});
+  menuEntries.push({name: 'Maak Presentielijsten', functionName: 'genAttendanceForms'});
   
   // Menu item to display information on how to use app
   menuEntries.push({name: 'Reset sheet', functionName: 'resetApp_'});
@@ -174,7 +174,18 @@ function resetApp_(){
   if (sheets[i].getSheetName() != "planning" && sheets[i].getSheetName() != "Middelen") {
     // If sheet already has linked form, unlink and delete it
     var linkedform = sheets[i].getFormUrl()
-    if (linkedform != null){FormApp.openByUrl(linkedform).removeDestination()}
+    if (linkedform != null){
+      try{
+      FormApp.openByUrl(linkedform).removeDestination()
+      }
+      catch (err) {
+        Browser.msgBox("Resetting sheet failed. This may happen when the linked \n"+
+                       "form has been deleted, but the response sheet is still linked.\n" +
+                       "Try unlinking the response sheet manually, then try again.\n")
+        throw err
+      }
+
+    }
     // Delete sheet
     Logger.log(Utilities.formatString("Deleting sheet %s", sheets[i].getSheetName()))
     ss.deleteSheet(sheets[i])
@@ -202,6 +213,14 @@ function genInstructorDocMenu(){
   Browser.msgBox("Overzichtsrooster is aangemaakt")
 }
 
+function genAttendanceForms(){
+  var ss = SpreadsheetApp.getActive();
+  Logger.log('Sending command to make attendance doc')
+  var docId = generateAttendanceForm('Bolderen', 'Maandag', '12:00 - 14:15');
+  moveFileToAnotherFolder(docId, getSubfolder(SETTINGS.attendance_folder, getParentFolderOfFile(ss)));
+  Browser.msgBox("Presentielijst is aangemaakt")
+}
+
 function generateSchedulesFromSheet_(){
   GenerateAndSendFromSheet_(false)
 }
@@ -220,12 +239,10 @@ function GenerateAndSendFromSheet_(SendEmail){
     var docId = generateFinalScheduleForUser(schedule[i]);
     moveFileToAnotherFolder(docId, getSubfolder(SETTINGS.schedules_folder_final, getParentFolderOfFile(ss)));
     if (SendEmail){
-      SendEmailToUser(schedule[i], 'email_final.html', docId)
+      SendEmailToUser(schedule[i], 'email_final.html', docId, "Jouw rooster voor " + INFO.weektitle + " " + INFO.weeknumber)
     }
-  }
-  
+  } 
 }
-
 
 function showHelp_(){
   // Display a modal dialog box with custom HtmlService content.
