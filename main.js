@@ -215,18 +215,23 @@ function genInstructorDocMenu(){
 
 function genAttendanceForms(){
   var ss = SpreadsheetApp.getActive();
-  Logger.log('Sending command to make attendance doc')
+  Logger.log('Sending command to make attendance docs')
   // Retrieve schedule. For each course / timeslot combination, generate attendance sheet
   schedule = retrieveSchedule()
   for (var i=0; i < schedule.length; i++){
     for (var j=0; j < schedule[i].options.length; j++){
-      day = schedule[i].date
-      time = schedule[i].time
-      course = schedule[i].options[j]
-      var docId = generateAttendanceForm(course, day, time);
+      course = schedule[i].options[j].course
+      if (course) {
+        day = DAYS[schedule[i].date.getDay() - 1]
+        time = schedule[i].time
+        
+        var docId = generateAttendanceForm(course, day, time);
+        moveFileToAnotherFolder(docId, getSubfolder(SETTINGS.attendance_folder, getParentFolderOfFile(ss)));
+        Logger.log("generated attendance form for " + course + day + time)
+      }
     }
   }
-  moveFileToAnotherFolder(docId, getSubfolder(SETTINGS.attendance_folder, getParentFolderOfFile(ss)));
+  
   Browser.msgBox("Presentielijsten zijn aangemaakt")
 }
 
@@ -273,7 +278,6 @@ function deleteTriggers() {
   for (var i = 0; i < triggers.length; i++) {
     ScriptApp.deleteTrigger(triggers[i]);
   }
- 
 }
 
 function findMatchingIdInArray(value, array){
