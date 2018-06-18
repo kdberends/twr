@@ -216,9 +216,18 @@ function genInstructorDocMenu(){
 function genAttendanceForms(){
   var ss = SpreadsheetApp.getActive();
   Logger.log('Sending command to make attendance doc')
-  var docId = generateAttendanceForm('Bolderen', 'Maandag', '12:00 - 14:15');
+  // Retrieve schedule. For each course / timeslot combination, generate attendance sheet
+  schedule = retrieveSchedule()
+  for (var i=0; i < schedule.length; i++){
+    for (var j=0; j < schedule[i].options.length; j++){
+      day = schedule[i].date
+      time = schedule[i].time
+      course = schedule[i].options[j]
+      var docId = generateAttendanceForm(course, day, time);
+    }
+  }
   moveFileToAnotherFolder(docId, getSubfolder(SETTINGS.attendance_folder, getParentFolderOfFile(ss)));
-  Browser.msgBox("Presentielijst is aangemaakt")
+  Browser.msgBox("Presentielijsten zijn aangemaakt")
 }
 
 function generateSchedulesFromSheet_(){

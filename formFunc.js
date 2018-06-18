@@ -41,7 +41,7 @@ function setUpForm_(ss, values) {
           }
         }
         Logger.log('Options: ' + courseOptions)
-        if (courseOptions.length > 1){
+        if (courseOptions.length > 0){
         form.addListItem()
         .setTitle(schedule[j].name)
         .setChoiceValues(courseOptions)

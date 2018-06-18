@@ -294,10 +294,13 @@ function generateAttendanceForm(course, day, time) {
   */
   // Create and share a personalized Google Doc that shows the student's chosen schedule
   
-  var docid = DriveApp.getFilesByName("RoosterTemplate").next().makeCopy(Utilities.formatString('Presentielijst voor %s, %s, %s', course, day, time)).getId();
+  var docid = DriveApp.getFilesByName("RoosterTemplate")
+                      .next()
+                      .makeCopy(Utilities.formatString('Presentielijst voor %s, %s, %s', course, day, time))
+                      .getId();
   var doc = DocumentApp.openById(docid)
-  //var doc = DocumentApp.create(Utilitie.formatString('Voorlopig Rooster voor %s, %s', user.name, user.class));
   var body = doc.getBody();
+
   // to landscape (in points https://www.google.nl/webhp#newwindow=1&q=8,27+inch+in+point)
   doc.getBody().setPageHeight(595.276).setPageWidth(841.89);
   
@@ -318,8 +321,11 @@ function generateAttendanceForm(course, day, time) {
   for (var i=0;i<students.length;i++){
     msg += Utilities.formatString("%s, %s\n", students[i].name, students[i].class)
   }
-  Logger.log(msg)
-  body.insertParagraph(body.getNumChildren(), msg)
+  
+  body.insertParagraph(0, "Aanwezigheidslijst")
+      .setHeading(DocumentApp.ParagraphHeading.HEADING1);
+  body.appendParagraph(msg)
+  
   var docId = doc.getId();
   doc.saveAndClose();
   
