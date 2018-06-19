@@ -1,3 +1,6 @@
+/* Append data to sheet
+ * Note: function no longer used
+ */
 function appendToSheet(sheetName, data) {
   var ActiveSheet = SpreadsheetApp.getActive().getSheetByName(sheetName)
   var values = ActiveSheet.getDataRange().getValues();
@@ -9,6 +12,9 @@ function appendToSheet(sheetName, data) {
   ActiveSheet.getRange(values.length + 1, 1, 1, data.length).setValues(newdata);
 }
 
+/* Create a new sheet with name..
+ * Note: no longer used. 
+ */
 function createSheet(name) {
   var activeSpreadsheet = SpreadsheetApp.getActive()
   var yourNewSheet = activeSpreadsheet.getSheetByName(name);
@@ -30,10 +36,6 @@ function createSheet(name) {
  * Parses the 'planning' sheet and returns the 'schedule' array. Each
  * item in the array is an object with info on the schedule item. 
  * Number of students per timeslot is retrieved from the linked form
- *
- *
- * 
- * 
  */
 function retrieveSchedule(){ 
   var schedule = [];
@@ -84,8 +86,7 @@ function retrieveSchedule(){
       schedule.push({name: session, date: day, time: time, options:options});
     }
   }
-  
-  
+
   return schedule  
 }
 

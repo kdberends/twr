@@ -2,7 +2,7 @@
  * Creates a Google Form that allows students to select which 
  * sessions they would like to attend.
  *
- * @param {Spreadsheet} ss The spreadsheet that contains the conference data.
+ * @param {Spreadsheet} ss The master spreadsheet
  * @param {String[][]} values Cell values for the spreadsheet range.
  */
 function setUpForm_(ss, values) {
@@ -59,7 +59,6 @@ function setUpForm_(ss, values) {
   return form.getId()
 }
 
-
 /**
  * Function executed on submission of form:
  *  - Adds student answers to course-specific sheet
@@ -87,7 +86,6 @@ function onFormSubmit(e) {
     chosenCourse = e.namedValues[schedule[i].name]
     Logger.log(chosenCourse)
     if (chosenCourse[0].length > 0){
-    //appendToSheet(chosenCourse[0], [user.name, user.class, schedule[i].name])
     user.response.push({day:schedule[i].name.split(',')[0].trim(), 
                         session: schedule[i].name.split(',')[1].trim(), 
                         choice: e.namedValues[schedule[i].name]})
@@ -105,7 +103,6 @@ function onFormSubmit(e) {
   // Email student
   Logger.log('sendign email to ' + user.email)
   var attachment = DriveApp.getFileById(docId);
-  //var htmlBody = HtmlService.createHtmlOutputFromFile('email_prelim.html').getContent();
   var template = HtmlService.createTemplateFromFile('email_prelim.html')
   template.name = user.name;
   htmlBody = template.evaluate().getContent();

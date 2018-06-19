@@ -15,19 +15,14 @@
 *                         for students
 *
 * This script adds the menu item "Trivium". 
-* Based on: https://developers.google.com/apps-script/quickstart/forms
 *
 * -------------------------------------------------------
-* Contact: mariekebloo@triviumcollege.com 
 *
 * Authors
 *    - Marieke Berends-Bloo
 *    - Koen Berends
 *
 * -------------------------------------------------------
-* Copyright 2018 
-*
-*
 */
 
 // global variables
@@ -36,8 +31,14 @@ var SESSIONS = getSESSIONS()
 var INFO = getINFO()
 var CLASSES = ['M1A', 'M1B', 'M2A', 'M2B', 'M3A', 'M3B', 'M4A', 'M4B']
 var DAYS = ['Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag']
-var SETTINGS = {schedules_folder_preliminary: "VoorlopigeRoosters", schedules_folder_final: "DefinitieveRoosters", attendance_folder: "Presentielijsten"}
+var SETTINGS = {schedules_folder_preliminary: "VoorlopigeRoosters", 
+                schedules_folder_final: "DefinitieveRoosters", 
+                attendance_folder: "Presentielijsten",
+                title_overviewschedule: "Overzichtsrooster"}
 
+/* Retrieves weeknumber and title from 
+ * spreadsheet
+ */
 function getINFO(){
   var ss = SpreadsheetApp.getActive();
   var weektitle = ss.getRange("Middelen!C2").getValues()
@@ -45,6 +46,9 @@ function getINFO(){
   return {weektitle:weektitle, weeknumber:weeknumber}
 }
 
+/* Retrieves list of courses
+ *
+ */
 function getCOURSES(){
   var ss = SpreadsheetApp.getActive();
   
@@ -66,6 +70,9 @@ function getCOURSES(){
   return courses
 }
 
+/* Retrieves sessions (=timeslots)  
+ *
+ */
 function getSESSIONS(){
   var ss = SpreadsheetApp.getActive();
   // names
@@ -235,14 +242,23 @@ function genAttendanceForms(){
   Browser.msgBox("Presentielijsten zijn aangemaakt")
 }
 
+/*
+ *
+ */
 function generateSchedulesFromSheet_(){
   GenerateAndSendFromSheet_(false)
 }
 
+/*
+ *
+ */
 function sendSchedulesFromSheet_(){
   GenerateAndSendFromSheet_(true) 
 }
 
+/*
+ *
+ */
 function GenerateAndSendFromSheet_(SendEmail){
   var ss = SpreadsheetApp.getActive();
   schedule = retrieveStudentSchedule()
@@ -258,6 +274,9 @@ function GenerateAndSendFromSheet_(SendEmail){
   } 
 }
 
+/*
+ *
+ */
 function showHelp_(){
   // Display a modal dialog box with custom HtmlService content.
   var html = HtmlService.createHtmlOutputFromFile('sidebar')
@@ -267,11 +286,9 @@ function showHelp_(){
       .showSidebar(html);
 }
 
-// =============================================================================================
-// 
-// =============================================================================================
-
-
+/*
+ *
+ */
 function deleteTriggers() {
   // Deletes all triggers in the current project.
   var triggers = ScriptApp.getProjectTriggers();
@@ -280,6 +297,9 @@ function deleteTriggers() {
   }
 }
 
+/*
+ *
+ */
 function findMatchingIdInArray(value, array){
   for (i in array){
     if (array[i] == value){return parseInt(i)}

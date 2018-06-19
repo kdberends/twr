@@ -1,23 +1,26 @@
+/**
+ * This function generates an overview schedule of all
+ * courses given. This overview is meant for instructors
+ * or schedulers. 
+ * 
+ * The document is generated in the OutputFolder. 
+ * 
+ * @param {String[][]} OutputFolder Name of the folder the document should 
+ *                                 be put into
+ */
 function generateInstructorDocument(OutputFolder){
-  /**
-  This function generates an overview schedule of all
-  courses given. This overview is meant for instructors
-  or schedulers. 
   
-  The document is generated in the OutputFolder. 
   
-  Argument:
-  OutputFolder: google driver folder ID
+  // Copy the template
+  // TODO: Give rooster ID instead? If multiple files exist with same name 
+  // wrong one could be copied
+  var docid = DriveApp.getFilesByName("RoosterTemplate")
+                      .next()
+                      .makeCopy(SETTINGS.title_overviewschedule)
+                      .getId();
   
-  Returns:
-  Google document ID
-
-  */
-  var schedule = retrieveSchedule()
-  var docid = DriveApp.getFilesByName("RoosterTemplate").next().makeCopy('Overzichtsrooster').getId();
+  // Open the document 
   var doc = DocumentApp.openById(docid)
-  //var doc = DocumentApp.create('Overzichtsrooster')
-  
   var body = doc.getBody();
   
   // Define a custom paragraph style to maximimze usage of document space
@@ -42,13 +45,14 @@ function generateInstructorDocument(OutputFolder){
     table.push(row)
   }
   
-  // sessionsnames for look up
+  // sessionsnames used for look up later
   var sessionnames = []
     for (i in SESSIONS){
       sessionnames.push(SESSIONS[i].name[0])
     }
   
   // Fill table with data from schedule
+  var schedule = retrieveSchedule()
   for (i in schedule){
     columnId = schedule[i].date.getDay()
     rowId = findMatchingIdInArray(schedule[i].time, sessionnames) 
@@ -69,7 +73,7 @@ function generateInstructorDocument(OutputFolder){
     }
   }
 
-  // Fill document
+  // Fill document with text, table
   body.insertParagraph(0, Utilities.formatString('Rooster voor %s %s', INFO.weektitle, INFO.weeknumber))
       .setHeading(DocumentApp.ParagraphHeading.HEADING1).editAsText().setFontFamily("Comfortaa");
   table = body.appendTable(table);
@@ -81,13 +85,11 @@ function generateInstructorDocument(OutputFolder){
   // Style other rows
   for (var i = 0; i< table.getNumRows(); i++){
     for (var j = 0; j<  table.getRow(i).getNumCells();j++){
-      //Logger.log("row: " + i + " Column; " + j);
       table.getRow(i).getCell(j).editAsText().setFontFamily("Courier New");
-      
     }
   }
   
-  // Add Legend
+  // Add Legend (course id: id)
   var legend = '';
   for (i=0;i<COURSES.length;i++){
     legend += Utilities.formatString('%s: %s\n', COURSES[i].id, COURSES[i].name)
@@ -99,10 +101,13 @@ function generateInstructorDocument(OutputFolder){
   doc.saveAndClose();
   Logger.log("Document ${docId} saved and closed")
   moveFileToAnotherFolder(docId, OutputFolder)
-  Logger.log(docId)
   return docId
 }
 
+
+/**
+ * For a coursename, return the ID
+ */
 function getIdofCourse(coursename){
   for (var i=0;i<COURSES.length;i++){
     if (COURSES[i].name == coursename){
@@ -111,32 +116,36 @@ function getIdofCourse(coursename){
   }
 }
 
+/* We use triviumlogo from web. 
+ * TODO: store logo locally? This may give problems if 
+ * external location changes..
+*/
 function getTriviumMavoLogoBlob() {
   // Retrieve an image from the web.
   var resp = UrlFetchApp.fetch("https://www.triviumcollege.nl/files/images/cache/7f5bffc0abbf95f3f7c8759ad348ee3206e40fd0.jpg");
-
   return resp.getBlob();
 }
 
+/**
+ * This function generates a preliminary document
+ * based on choices of the student.
+ * 
+ * The document is generated in the OutputFolder. 
+ * 
+ * Argument:
+ * OutputFolder: google driver folder ID
+ * 
+ * Returns:
+ * Google document ID
+ */
 function generatePreliminaryDocument(user) {
-  /**
-  This function generates a preliminary document
-  based on choices of the student.
   
-  The document is generated in the OutputFolder. 
-  
-  Argument:
-  OutputFolder: google driver folder ID
-  
-  Returns:
-  Google document ID
-
-  */
   // Create and share a personalized Google Doc that shows the student's chosen schedule
-  
-  var docid = DriveApp.getFilesByName("RoosterTemplate").next().makeCopy(Utilities.formatString('Voorlopig Rooster voor %s, %s', user.name, user.class)).getId();
+  var docid = DriveApp.getFilesByName("RoosterTemplate")
+                      .next()
+                      .makeCopy(Utilities.formatString('Voorlopig Rooster voor %s, %s', user.name, user.class))
+                      .getId();
   var doc = DocumentApp.openById(docid)
-  //var doc = DocumentApp.create(Utilitie.formatString('Voorlopig Rooster voor %s, %s', user.name, user.class));
   var body = doc.getBody();
   // to landscape (in points https://www.google.nl/webhp#newwindow=1&q=8,27+inch+in+point)
   doc.getBody().setPageHeight(595.276).setPageWidth(841.89);
@@ -152,7 +161,6 @@ function generatePreliminaryDocument(user) {
   
   // Build table out of student response
   // =======================================
-  
   // Header
   var table = [['Tijdvak']];
   for (i in DAYS){table[0].push(DAYS[i])}
@@ -199,25 +207,29 @@ function generatePreliminaryDocument(user) {
   return docId
 }
 
-function generateFinalScheduleForUser(user) {
-  /**
-  This function generates a preliminary document
-  based on choices of the student.
-  
-  The document is generated in the OutputFolder. 
-  
-  Argument:
-  OutputFolder: google driver folder ID
-  
-  Returns:
-  Google document ID
 
-  */
-  // Create and share a personalized Google Doc that shows the student's chosen schedule
+/**
+ * This function generates the final document
+ * based on choices of the student.
+ * 
+ * The document is generated in the OutputFolder. 
+ * 
+ * Argument:
+ * OutputFolder: google driver folder ID
+ * 
+ * Returns:
+ * Google document ID
+ *
+ * TODO: merge generatePreliminaryDocument and 
+ *       generateFinalScheduleForUser into one
+ *       more general func?
+ *
+ */
+function generateFinalScheduleForUser(user) {
   
+  // Create and share a personalized Google Doc that shows the student's chosen schedule
   var docid = DriveApp.getFilesByName("RoosterTemplate").next().makeCopy(Utilities.formatString('Definitief Rooster voor %s, %s', user.name, user.class)).getId();
   var doc = DocumentApp.openById(docid)
-  //var doc = DocumentApp.create(Utilitie.formatString('Voorlopig Rooster voor %s, %s', user.name, user.class));
   var body = doc.getBody();
   // to landscape (in points https://www.google.nl/webhp#newwindow=1&q=8,27+inch+in+point)
   doc.getBody().setPageHeight(595.276).setPageWidth(841.89);
@@ -278,20 +290,13 @@ function generateFinalScheduleForUser(user) {
   return docId
 }
 
-function generateAttendanceForm(course, day, time) {
-  /**
-  This function generates a preliminary document
-  based on choices of the student.
-  
-  The document is generated in the OutputFolder. 
-  
-  Argument:
-  OutputFolder: google driver folder ID
-  
-  Returns:
-  Google document ID
 
-  */
+/* Generate attendance form. Currently, just
+ * copies templates and filles with list of names
+ * of students registered for course. 
+ * TODO: make more fancy
+ */
+function generateAttendanceForm(course, day, time) {
   // Create and share a personalized Google Doc that shows the student's chosen schedule
   
   var docid = DriveApp.getFilesByName("RoosterTemplate")
@@ -332,7 +337,9 @@ function generateAttendanceForm(course, day, time) {
   return docId
 }
 
-
+/* For given day, timeslot and coursename, returns
+ * which instructor and classroom are listed. 
+ */
 function GetDetailsForCourse(day, session, course){
   Logger.log('requestion details for '+day+session+course)
   var schedule = retrieveSchedule()
